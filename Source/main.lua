@@ -13,7 +13,7 @@ local baseNumber = 10
 local maximum = 1024
 
 local lastDigitStart = {x = 352, y = 115}
-local digitDistance = 4
+local digitGap = 4
 
 
 local function createDigit(x,y, power)
@@ -26,7 +26,7 @@ local function createDigit(x,y, power)
    
    function digit:update()
        local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
-       local newCenter = value / baseNumber + 0.05
+       local newCenter = value / baseNumber 
        -- print("value " .. value)
        digit:setCenter(0.5, newCenter)
    end
@@ -43,15 +43,17 @@ local function createForeground()
 end
 
 local function createDigits()
-    for power = 7, 0, -1
+    local image = playdate.graphics.image.new('images/decimal')
+    local width, h = image:getSize()
+    
+    for power = 0, 7, 1
     do
-       print(power)
+        local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
+       createDigit(xPos, lastDigitStart.y, power)
     end
 end
 
 createDigits()
-createDigit(375, 140, 0)
-createDigit(330, 140, 1)
 createForeground()
 
 function playdate.update()
@@ -60,12 +62,9 @@ function playdate.update()
 end
 
 function playdate.cranked(change)
-    -- gfx.clear()
-
     local newRodPosition = accumulatedNumber + change/360 * controlRodSpeed
     accumulatedNumber = math.max(0,math.min(maximum or 1, newRodPosition))
     -- print("accumulatedNumber " .. accumulatedNumber)
-    -- digit.updateClone(accumulatedNumber)
     
     -- gfx.drawText("*" .. change .. "*", 4, 4)
     -- gfx.drawText("*" .. accumulatedNumber .. "*", 4, 20)

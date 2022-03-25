@@ -16,12 +16,10 @@ local maximum = 1024
 local function createDigit(x,y)
    
    local digit = gfx.sprite.new()
-   
-    digit:setZIndex(800)
-       
-    digit:setImage(playdate.graphics.image.new('images/decimal'))
-    digit:moveTo(x, y)
-    digit:add()
+   digit:setZIndex(800)
+   digit:setImage(playdate.graphics.image.new('images/decimal'))
+   digit:moveTo(x, y)
+   digit:add()
    
    function digit:update()
        local value = ( accumulatedNumber % baseNumber ) / baseNumber + 0.05
@@ -32,7 +30,16 @@ local function createDigit(x,y)
  
 end
 
-createDigit(100, 100)
+local function createForeground()
+    local foreground = gfx.sprite.new()
+    foreground:setZIndex(1000)
+    foreground:setImage(playdate.graphics.image.new('images/digit-mask'))
+    foreground:moveTo(200, 120)
+    foreground:add()
+end
+
+createDigit(320, 130)
+createForeground()
 
 function playdate.update()
     gfx.sprite.update()

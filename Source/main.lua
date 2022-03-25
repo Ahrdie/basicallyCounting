@@ -5,7 +5,7 @@ import "CoreLibs/sprites"
 local gfx = playdate.graphics
 
 -- 0 is fully outside, 1 fully inside
-local accumulatedNumber = 0
+local accumulatedNumber = 8
 local controlRodSpeed = 1
 local reactorfloor = 200
 local reactormiddle = 175
@@ -14,21 +14,31 @@ local maximum = 1024
 
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 4
+local digitHeight = 60
 
 
 local function createDigit(x,y, power)
    
+   local image = playdate.graphics.image.new('images/decimal')
+   
    local digit = gfx.sprite.new()
-   digit:setZIndex(800)
-   digit:setImage(playdate.graphics.image.new('images/decimal'))
+   digit:setZIndex(800 + power)
+   digit:setImage(image)
    digit:moveTo(x, y)
    digit:add()
+    
+    local shadowBehind = gfx.sprite.new()
+    shadowBehind:setZIndex(900 + power)
+    shadowBehind:setImage(image)
+    shadowBehind:moveTo(x, y + digitHeight)
+    shadowBehind:add()
+
    
    function digit:update()
        local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
-       local newCenter = value / baseNumber 
-       -- print("value " .. value)
+       local newCenter = value / baseNumber
        digit:setCenter(0.5, newCenter)
+       shadowBehind:setCenter(0.5, ( value - baseNumber +1) / baseNumber)
    end
    return digit
  

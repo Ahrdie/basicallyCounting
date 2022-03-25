@@ -5,7 +5,7 @@ import "CoreLibs/sprites"
 local gfx = playdate.graphics
 
 -- 0 is fully outside, 1 fully inside
-local accumulatedNumber = 8
+local accumulatedNumber = 0
 local controlRodSpeed = 1
 local reactorfloor = 200
 local reactormiddle = 175
@@ -13,13 +13,13 @@ local baseNumber = 10
 local maximum = 1024
 
 local lastDigitStart = {x = 352, y = 115}
-local digitGap = 4
+local digitGap = 5
 local digitHeight = 60
 
 
 local function createDigit(x,y, power)
    
-   local image = playdate.graphics.image.new('images/decimal')
+   local image = playdate.graphics.image.new('images/decimal-balloon')
    
    local digit = gfx.sprite.new()
    digit:setZIndex(800 + power)

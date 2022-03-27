@@ -11,8 +11,9 @@ local controlRodSpeed = 1
 local reactorfloor = 200
 local reactormiddle = 175
 local baseSelection = 2
-local base = {16,10,2}
+local base = {10,2}
 local maximum = 1024
+local accumulationReduction = 0
 
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
@@ -44,7 +45,6 @@ local function createDigit(x,y, power)
    end
    
    function digit:checkBase()
-       print((baseNumber == base[baseSelection]) == false)
        if (baseNumber == base[baseSelection]) == false then
            digit:setNewBase()
        end
@@ -112,7 +112,6 @@ end
 
 local function createDigits()
     local image = playdate.graphics.image.new('images/digit10')
-    print(image)
     local width, h = image:getSize()
     
     for power = 0, 7, 1
@@ -123,7 +122,6 @@ local function createDigits()
 end
 
 local function createBaseSigns()
-    print(base)
     for i, power in ipairs(base) do
         createBaseSign(350 - i * 35, 109, power)
     end
@@ -139,14 +137,25 @@ function playdate.update()
         print(baseSelection, "left +1")
         local newBase = baseSelection += 1
         baseSelection = math.min(newBase, #base)
-    elseif playdate.buttonJustPressed(playdate.kButtonRight) then
+    end
+    if playdate.buttonJustPressed(playdate.kButtonRight) then
         print(baseSelection, "right -1")
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
+    if playdate.buttonIsPressed("A")then
+        accumulationReduction = (accumulationReduction + 0.05) * 1.1
+    else
+        accumulationReduction = math.max(0, ((accumulationReduction -0.1) * 0.8))
+    end
     
+    reduceAccumulation()
     gfx.sprite.update()
     playdate.drawFPS(0,0)
+end
+
+function reduceAccumulation()
+    accumulatedNumber = math.max(0, accumulatedNumber -= accumulationReduction)
 end
 
 function playdate.cranked(change)

@@ -7,13 +7,11 @@ local gfx = playdate.graphics
 
 -- 0 is fully outside, 1 fully inside
 local accumulatedNumber = 0
-local controlRodSpeed = 1
-local reactorfloor = 200
-local reactormiddle = 175
+local crankSpeed = 1
 local baseSelection = 2
 local base = {10,2}
 local maximum = 1024
-local accumulationReduction = 0
+local accumulationChange = 0
 
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
@@ -60,8 +58,21 @@ local function createDigit(x,y, power)
    return digit
 end
 
+local function createDigits()
+    local image = playdate.graphics.image.new('images/digit10')
+    local width, h = image:getSize()
+    
+    for power = 0, 7, 1
+    do
+        local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
+       createDigit(xPos, lastDigitStart.y, power)
+    end
+end
+
 local function createBaseSign(x,y, baseNumber)
-    local image = playdate.graphics.image.new('images/base' .. baseNumber)
+    --local image = gfx.image.new('images/base' .. baseNumber)
+    local signtable = gfx.imagetable.new('images/base' .. baseNumber .. '-sign')
+    --print(signtable)
     local selected = false
     local extension = 0
     
@@ -70,7 +81,7 @@ local function createBaseSign(x,y, baseNumber)
        
     local sign = gfx.sprite.new()
     sign:setZIndex(1100)
-    sign:setImage(image)
+    sign:setImage(signtable:getImage(1))
     sign:moveTo(x, y)
     sign:add()
     
@@ -96,6 +107,12 @@ local function createBaseSign(x,y, baseNumber)
     end
 end
 
+local function createBaseSigns()
+    for i, power in ipairs(base) do
+        createBaseSign(350 - i * 35, 108, power)
+    end
+end
+
 local function createForeground()
     local foregroundMask = gfx.sprite.new()
     foregroundMask:setZIndex(1000)
@@ -108,23 +125,6 @@ local function createForeground()
     foreground:setImage(playdate.graphics.image.new('images/counter'))
     foreground:moveTo(200, 120)
     foreground:add()
-end
-
-local function createDigits()
-    local image = playdate.graphics.image.new('images/digit10')
-    local width, h = image:getSize()
-    
-    for power = 0, 7, 1
-    do
-        local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
-       createDigit(xPos, lastDigitStart.y, power)
-    end
-end
-
-local function createBaseSigns()
-    for i, power in ipairs(base) do
-        createBaseSign(350 - i * 35, 109, power)
-    end
 end
 
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
@@ -143,23 +143,40 @@ function playdate.update()
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
-    if playdate.buttonIsPressed("A")then
-        accumulationReduction = (accumulationReduction + 0.05) * 1.1
+    if playdate.buttonIsPressed("B") then -- reduce
+        if accumulationChange > 0 then
+            accumulationChange = (accumulationChange - 0.05) * 0.8
+        else
+            accumulationChange = (accumulationChange - 0.05) * 1.2
+        end
+    elseif playdate.buttonIsPressed("A") then -- increase
+        if accumulationChange > 0 then
+            accumulationChange = (accumulationChange + 0.05) * 1.2
+        else
+            accumulationChange = (accumulationChange + 0.05) * 0.8
+        end
     else
-        accumulationReduction = math.max(0, ((accumulationReduction -0.1) * 0.8))
+        if (accumulationChange > 0.1) then
+            accumulationChange = math.min(0, ((accumulationChange -0.1) * 0.8))
+        elseif (accumulationChange < - 0.1) then
+            accumulationChange = math.max(0, ((accumulationChange +0.1) * 0.8))
+        else
+            accumulationChange = 0
+        end
     end
     
-    reduceAccumulation()
+    
+    changeAccumulation()
     gfx.sprite.update()
     playdate.drawFPS(0,0)
 end
 
-function reduceAccumulation()
-    accumulatedNumber = math.max(0, accumulatedNumber -= accumulationReduction)
+function changeAccumulation()
+    accumulatedNumber = math.max(0, accumulatedNumber += accumulationChange)
 end
 
 function playdate.cranked(change)
-    local newRodPosition = accumulatedNumber + change/360 * controlRodSpeed
+    local newRodPosition = accumulatedNumber + change/360 * crankSpeed
     accumulatedNumber = math.max(0,math.min(maximum or 1, newRodPosition))
     -- print("accumulatedNumber " .. accumulatedNumber)
     

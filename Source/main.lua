@@ -5,7 +5,6 @@ import "CoreLibs/math"
 
 local gfx = playdate.graphics
 
--- 0 is fully outside, 1 fully inside
 local accumulatedNumber = 0
 local crankSpeed = 1
 local baseSelection = 2
@@ -70,9 +69,9 @@ local function createDigits()
 end
 
 local function createBaseSign(x,y, baseNumber)
-    --local image = gfx.image.new('images/base' .. baseNumber)
     local signtable = gfx.imagetable.new('images/base' .. baseNumber .. '-sign')
-    --print(signtable)
+    local animator = gfx.animator.new(800, 1, 1)
+    print(signtable:getLength())
     local selected = false
     local extension = 0
     
@@ -86,7 +85,11 @@ local function createBaseSign(x,y, baseNumber)
     sign:add()
     
     function sign:update()
-        sign:checkBase()
+       local currentFrame = math.floor(animator:currentValue())
+       print(baseNumber, selected, baseSelection, currentFrame)
+       sign:setImage(signtable:getImage(currentFrame))
+       sign:checkBase()
+       
         if selected and extension < 1 then
             extension += 0.05
             extension = math.min(extension, 1)
@@ -95,21 +98,24 @@ local function createBaseSign(x,y, baseNumber)
             extension = math.max(extension, 0)
         end
         
-        sign:setCenter(0.5, playdate.math.lerp(middleStart, extendedMiddle, extension))
     end
     
     function sign:checkBase()
-        if baseNumber == base[baseSelection] then
-            selected = true
-        else
-            selected = false
-        end
+      if selected ~= (baseNumber == base[baseSelection]) then
+          if not selected then
+             animator = gfx.animator.new(200, animator:currentValue(), signtable:getLength())
+          else
+             animator = gfx.animator.new(800, animator:currentValue(), 1)
+          end
+          
+          selected = not selected
+      end
     end
 end
 
 local function createBaseSigns()
     for i, power in ipairs(base) do
-        createBaseSign(350 - i * 35, 108, power)
+        createBaseSign(350 - i * 35, 94, power)
     end
 end
 
@@ -134,12 +140,10 @@ createForeground()
 
 function playdate.update()
     if playdate.buttonJustPressed(playdate.kButtonLeft) then
-        print(baseSelection, "left +1")
         local newBase = baseSelection += 1
         baseSelection = math.min(newBase, #base)
     end
     if playdate.buttonJustPressed(playdate.kButtonRight) then
-        print(baseSelection, "right -1")
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
@@ -176,10 +180,8 @@ function changeAccumulation()
 end
 
 function playdate.cranked(change)
-    local newRodPosition = accumulatedNumber + change/360 * crankSpeed
-    accumulatedNumber = math.max(0,math.min(maximum or 1, newRodPosition))
-    -- print("accumulatedNumber " .. accumulatedNumber)
-    
+    local newAccumulation = accumulatedNumber + change/360 * crankSpeed
+    accumulatedNumber = math.max(0,math.min(maximum or 1, newAccumulation))
     -- gfx.drawText("*" .. change .. "*", 4, 4)
     -- gfx.drawText("*" .. accumulatedNumber .. "*", 4, 20)
     

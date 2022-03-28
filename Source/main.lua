@@ -145,15 +145,15 @@ function playdate.update()
     end
     if playdate.buttonIsPressed("B") then -- reduce
         if accumulationChange > 0 then
-            accumulationChange = (accumulationChange - 0.05) * 0.8
+            accumulationChange = (accumulationChange - 0.05) * 0.95
         else
-            accumulationChange = (accumulationChange - 0.05) * 1.2
+            accumulationChange = (accumulationChange - 0.05) * 1.05
         end
     elseif playdate.buttonIsPressed("A") then -- increase
         if accumulationChange > 0 then
-            accumulationChange = (accumulationChange + 0.05) * 1.2
+            accumulationChange = (accumulationChange + 0.05) * 1.05
         else
-            accumulationChange = (accumulationChange + 0.05) * 0.8
+            accumulationChange = (accumulationChange + 0.05) * 0.95
         end
     else
         if (accumulationChange > 0.1) then
@@ -172,7 +172,7 @@ function playdate.update()
 end
 
 function changeAccumulation()
-    accumulatedNumber = math.max(0, accumulatedNumber += accumulationChange)
+    accumulatedNumber = math.min(math.max(0, accumulatedNumber += accumulationChange),20000000)
 end
 
 function playdate.cranked(change)

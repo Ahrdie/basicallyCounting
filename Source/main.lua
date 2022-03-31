@@ -3,6 +3,7 @@ import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/math"
 import "CoreLibs/animation"
+import "CoreLibs/easing"
 
 local gfx = playdate.graphics
 
@@ -19,6 +20,9 @@ local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
 local digitHeight = 60
 
+local digitalSnapSpeed = 700
+local digitEaseFunction = playdate.easingFunctions.outBounce
+
 local speed = 0
 
 local menu = playdate.getSystemMenu()
@@ -31,28 +35,49 @@ local function createDigit(x,y, power)
    local baseNumber = base[baseSelection]
    local digit = gfx.sprite.new()
    digit:setZIndex(800 + power)
+   local animator = gfx.animator.new(digitalSnapSpeed, 0, 0)
+   local lastValue = math.floor((accumulatedNumber/(baseNumber ^ power)) % baseNumber)
    
-    local shadowBehind = gfx.sprite.new()
-    shadowBehind:setZIndex(900 + power)
+   local shadowBehind = gfx.sprite.new()
+   shadowBehind:setZIndex(700 + power)
     
    function digit:update()
       digit:checkBase()
+      
       local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
-      if(power == 1) then
-         --print(value)
-      end
       local newCenter = value / baseNumber
       local newShadowCenter = ( value - baseNumber +1) / baseNumber
+      
       if not analogueModeEnabled then
-         print("in if")
-         newCenter = math.floor(value)/baseNumber
-         newShadowCenter = math.floor(value - baseNumber +1) / baseNumber
+         value = (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
+         
+         local flooredValue = math.floor(value)
+         local lastFlooredValue = math.floor(lastValue)
+         
+         if lastFlooredValue ~=  flooredValue then
+            -- positive overroll
+            if (lastFlooredValue == baseNumber -1) and flooredValue == 0 and (playdate.getCrankChange() > 0) then
+               animator = gfx.animator.new(digitalSnapSpeed, baseNumber -1, baseNumber, digitEaseFunction)
+            
+            -- negative overroll
+            elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 and (playdate.getCrankChange() < 0) then
+               animator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
+            else
+               animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, flooredValue, digitEaseFunction)
+            end
+         end
+         print(animator:currentValue())
+         newCenter = animator:currentValue()/baseNumber
+         
+         if animator:currentValue() >= baseNumber then
+            newCenter = 0
+         end
+         
+         lastValue = value
       end
-      if(power == 1) then
-         print(value, analogueModeEnabled, newCenter)
-      end
+      
       digit:setCenter(0.5, newCenter)
-      shadowBehind:setCenter(0.5, newShadowCenter)
+      shadowBehind:setCenter(0.5, newCenter)
    end
    
    function digit:setNewBase()
@@ -72,8 +97,8 @@ local function createDigit(x,y, power)
    digit:moveTo(x, y)
    digit:add()
     
-    shadowBehind:moveTo(x, y + digitHeight)
-    shadowBehind:add()
+   shadowBehind:moveTo(x, y + baseNumber * digitHeight)
+   shadowBehind:add()
     
    return digit
 end
@@ -92,7 +117,6 @@ end
 local function createBaseSign(x,y, baseNumber)
     local signtable = gfx.imagetable.new('images/base' .. baseNumber .. '-sign')
     local animator = gfx.animator.new(800, 1, 1)
-    print(signtable:getLength())
     local selected = false
     local extension = 0
     
@@ -123,9 +147,9 @@ local function createBaseSign(x,y, baseNumber)
     function sign:checkBase()
       if selected ~= (baseNumber == base[baseSelection]) then
           if not selected then
-             animator = gfx.animator.new(200, animator:currentValue(), signtable:getLength())
+             animator = gfx.animator.new(400, animator:currentValue(), signtable:getLength(), playdate.easingFunctions.inCubic)
           else
-             animator = gfx.animator.new(800, animator:currentValue(), 1)
+             animator = gfx.animator.new(500, animator:currentValue(), 1, playdate.easingFunctions.inCubic)
           end
           
           selected = not selected

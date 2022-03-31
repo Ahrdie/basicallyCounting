@@ -2,6 +2,7 @@ import "CoreLibs/sprites"
 import "CoreLibs/graphics"
 import "CoreLibs/sprites"
 import "CoreLibs/math"
+import "CoreLibs/animation"
 
 local gfx = playdate.graphics
 
@@ -11,6 +12,7 @@ local baseSelection = 2
 local base = {10,2}
 local maximum = 1024
 local accumulationChange = 0
+local maximumAccumulation = 20000000
 
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
@@ -86,7 +88,6 @@ local function createBaseSign(x,y, baseNumber)
     
     function sign:update()
        local currentFrame = math.floor(animator:currentValue())
-       print(baseNumber, selected, baseSelection, currentFrame)
        sign:setImage(signtable:getImage(currentFrame))
        sign:checkBase()
        
@@ -119,6 +120,44 @@ local function createBaseSigns()
     end
 end
 
+local function createOverflowLight(x,y)
+   local lightFrames = gfx.imagetable.new('images/rotatingLight')
+   local animation = gfx.animation.loop.new(50, lightFrames, true)
+   
+   local selected = false
+   local extension = 0
+      
+   local light = gfx.sprite.new()
+   light:setZIndex(500)
+   light:setImage(lightFrames:getImage(7))
+   light:moveTo(x, y)
+   light:add()
+   
+   function light:update()
+      light:setImage(animation:image())
+      light:checkOverflow()
+      
+       if selected and extension < 1 then
+           extension += 0.05
+           extension = math.min(extension, 1)
+       elseif (not selected) and extension > 0 then
+           extension -= 0.07
+           extension = math.max(extension, 0)
+       end
+      
+      light:setCenter(extension, 0.5)
+   end
+   
+   function light:checkOverflow()
+      local largerThanDigits = accumulatedNumber >= base[baseSelection] ^ 8
+      if largerThanDigits then
+         selected = true
+      else
+        selected = false
+      end
+   end
+end
+
 local function createForeground()
     local foregroundMask = gfx.sprite.new()
     foregroundMask:setZIndex(1000)
@@ -136,6 +175,7 @@ end
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
 createBaseSigns()
+createOverflowLight(32, 130)
 createForeground()
 
 function playdate.update()
@@ -176,7 +216,7 @@ function playdate.update()
 end
 
 function changeAccumulation()
-    accumulatedNumber = math.min(math.max(0, accumulatedNumber += accumulationChange),20000000)
+    accumulatedNumber = math.min(math.max(0, accumulatedNumber += accumulationChange), maximumAccumulation)
 end
 
 function playdate.cranked(change)

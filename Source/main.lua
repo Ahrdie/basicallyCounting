@@ -13,12 +13,19 @@ local base = {10,2}
 local maximum = 1024
 local accumulationChange = 0
 local maximumAccumulation = 20000000
+local analogueModeEnabled = false
 
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
 local digitHeight = 60
 
 local speed = 0
+
+local menu = playdate.getSystemMenu()
+
+local checkmarkMenuItem, error = menu:addCheckmarkMenuItem("analogue", false, function(value)
+    analogueModeEnabled = value
+end)
 
 local function createDigit(x,y, power)
    local baseNumber = base[baseSelection]
@@ -29,11 +36,23 @@ local function createDigit(x,y, power)
     shadowBehind:setZIndex(900 + power)
     
    function digit:update()
-       digit:checkBase()
-       local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
-       local newCenter = value / baseNumber
-       digit:setCenter(0.5, newCenter)
-       shadowBehind:setCenter(0.5, ( value - baseNumber +1) / baseNumber)
+      digit:checkBase()
+      local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
+      if(power == 1) then
+         --print(value)
+      end
+      local newCenter = value / baseNumber
+      local newShadowCenter = ( value - baseNumber +1) / baseNumber
+      if not analogueModeEnabled then
+         print("in if")
+         newCenter = math.floor(value)/baseNumber
+         newShadowCenter = math.floor(value - baseNumber +1) / baseNumber
+      end
+      if(power == 1) then
+         print(value, analogueModeEnabled, newCenter)
+      end
+      digit:setCenter(0.5, newCenter)
+      shadowBehind:setCenter(0.5, newShadowCenter)
    end
    
    function digit:setNewBase()

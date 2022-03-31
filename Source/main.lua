@@ -44,13 +44,14 @@ local function createDigit(x,y, power)
    function digit:update()
       digit:checkBase()
       
-      local value = (accumulatedNumber/(baseNumber ^ power)) % baseNumber
+      local value = digit:getValue()
       local newCenter = value / baseNumber
-      local newShadowCenter = ( value - baseNumber +1) / baseNumber
       
       if not analogueModeEnabled then
          value = (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
-         
+         if(power == 2) then
+            --print(accumulatedNumber, value)
+         end
          local flooredValue = math.floor(value)
          local lastFlooredValue = math.floor(lastValue)
          
@@ -66,8 +67,10 @@ local function createDigit(x,y, power)
                animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, flooredValue, digitEaseFunction)
             end
          end
-         print(animator:currentValue())
          newCenter = animator:currentValue()/baseNumber
+            if(power == 2) then
+               print("changed to ", flooredValue, newCenter, animator:currentValue(), accumulatedNumber, value)
+            end
          
          if animator:currentValue() >= baseNumber then
             newCenter = 0
@@ -85,6 +88,9 @@ local function createDigit(x,y, power)
        local image = playdate.graphics.image.new('images/digit' .. baseNumber)
        digit:setImage(image)
        shadowBehind:setImage(image)
+       local value = math.floor(digit:getValue())
+       animator = gfx.animator.new(10, value, value)
+       print(animator)
    end
    
    function digit:checkBase()
@@ -93,12 +99,17 @@ local function createDigit(x,y, power)
        end
    end
    
+   function digit:getValue()
+      return (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
+   end
+   
    digit:setNewBase()
    digit:moveTo(x, y)
    digit:add()
     
    shadowBehind:moveTo(x, y + baseNumber * digitHeight)
    shadowBehind:add()
+   digit:setNewBase()
     
    return digit
 end

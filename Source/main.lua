@@ -49,9 +49,6 @@ local function createDigit(x,y, power)
       
       if not analogueModeEnabled then
          value = (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
-         if(power == 2) then
-            --print(accumulatedNumber, value)
-         end
          local flooredValue = math.floor(value)
          local lastFlooredValue = math.floor(lastValue)
          
@@ -68,9 +65,6 @@ local function createDigit(x,y, power)
             end
          end
          newCenter = animator:currentValue()/baseNumber
-            if(power == 2) then
-               print("changed to ", flooredValue, newCenter, animator:currentValue(), accumulatedNumber, value)
-            end
          
          if animator:currentValue() >= baseNumber then
             newCenter = 0
@@ -90,7 +84,6 @@ local function createDigit(x,y, power)
        shadowBehind:setImage(image)
        local value = math.floor(digit:getValue())
        animator = gfx.animator.new(10, value, value)
-       print(animator)
    end
    
    function digit:checkBase()

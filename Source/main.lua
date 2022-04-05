@@ -16,14 +16,17 @@ local accumulationChange = 0
 local maximumAccumulation = 20000000
 local analogueModeEnabled = false
 
+-- Digit stuff
 local lastDigitStart = {x = 352, y = 115}
 local digitGap = 5
 local digitHeight = 60
-
 local digitalSnapSpeed = 700
 local digitEaseFunction = playdate.easingFunctions.outBounce
 
-local speed = 0
+-- sound stuff
+local smplayer = playdate.sound.sampleplayer
+local clicks = {high={}, low={}}
+local baseWaveform = {playdate.sound.kWaveSine, playdate.sound.kWaveSquare}
 
 local menu = playdate.getSystemMenu()
 
@@ -56,7 +59,6 @@ local function createDigit(x,y, power)
             -- positive overroll
             if (lastFlooredValue == baseNumber -1) and flooredValue == 0 and (playdate.getCrankChange() > 0) then
                animator = gfx.animator.new(digitalSnapSpeed, baseNumber -1, baseNumber, digitEaseFunction)
-            
             -- negative overroll
             elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 and (playdate.getCrankChange() < 0) then
                animator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
@@ -219,11 +221,19 @@ local function createForeground()
     foreground:add()
 end
 
+local function loadClickSamples()
+    for i=0,2 do
+        table.insert(clicks["high"], smplayer.new("samples/click-high-" .. i))
+        table.insert(clicks["low"], smplayer.new("samples/click-low-" .. i))
+    end
+end
+
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
 createBaseSigns()
 createOverflowLight(32, 130)
 createForeground()
+loadClickSamples()
 
 function playdate.update()
     if playdate.buttonJustPressed(playdate.kButtonLeft) then
@@ -256,10 +266,24 @@ function playdate.update()
         end
     end
     
-    
     changeAccumulation()
+    playValueChangedSound()
     gfx.sprite.update()
     playdate.drawFPS(0,0)
+end
+
+function playValueChangedSound()
+   local currentFlooredNumber = math.floor(accumulatedNumber)
+   local crankChange = playdate:getCrankChange()/360 * crankSpeed
+   local lastFlooredNumber = math.max(0,math.floor(accumulatedNumber - crankChange))
+
+   if currentFlooredNumber > lastFlooredNumber then
+    local randomSample = math.random(1,3)
+    clicks["high"][randomSample]:play()
+   elseif currentFlooredNumber < lastFlooredNumber then
+    local randomSample = math.random(1,3)
+    clicks["low"][randomSample]:play()
+   end
 end
 
 function changeAccumulation()

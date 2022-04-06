@@ -7,14 +7,13 @@ import "CoreLibs/easing"
 
 local gfx = playdate.graphics
 local snd = playdate.sound
-local synth = snd.synth.new(snd.kWaveSquare)
-synth:setADSR(0,0.02,0,0)
+local overflowSynth = snd.synth.new(snd.kWaveSine)
+overflowSynth:setADSR(0.9,0.0,0.1,0.1)
 
 local accumulatedNumber = 0
 local crankSpeed = 1
 local baseSelection = 2
 local base = {10,2}
-local maximum = 1024
 local accumulationChange = 0
 local maximumAccumulation = 20000000
 local analogueModeEnabled = false
@@ -172,7 +171,7 @@ local function createBaseSigns()
     end
 end
 
-local function createOverflowLight(x,y)
+local function createOverflow(x,y)
    local lightFrames = gfx.imagetable.new('images/rotatingLight')
    local animation = gfx.animation.loop.new(50, lightFrames, true)
    
@@ -195,6 +194,12 @@ local function createOverflowLight(x,y)
        elseif (not selected) and extension > 0 then
            extension -= 0.07
            extension = math.max(extension, 0)
+       end
+
+       if selected then
+            local noteVariation = math.sin(playdate.getCurrentTimeMilliseconds()/100)
+            local note = 361.63 + noteVariation * 100
+            overflowSynth:playNote(note, 0.07 * extension, 0.1)
        end
       
       light:setCenter(extension, 0.5)
@@ -234,7 +239,7 @@ end
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
 createBaseSigns()
-createOverflowLight(32, 130)
+createOverflow(32, 130)
 createForeground()
 loadClickSamples()
 
@@ -268,7 +273,7 @@ function playdate.update()
             accumulationChange = 0
         end
     end
-    
+
     changeAccumulation()
     playValueChangedSound()
     gfx.sprite.update()
@@ -295,7 +300,7 @@ end
 
 function playdate.cranked(change)
     local newAccumulation = accumulatedNumber + change/360 * crankSpeed
-    accumulatedNumber = math.max(0,math.min(maximum or 1, newAccumulation))
+    accumulatedNumber = math.max(0,math.min(maximumAccumulation or 1, newAccumulation))
     -- gfx.drawText("*" .. change .. "*", 4, 4)
     -- gfx.drawText("*" .. accumulatedNumber .. "*", 4, 20)
     

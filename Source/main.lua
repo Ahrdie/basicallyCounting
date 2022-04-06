@@ -6,6 +6,9 @@ import "CoreLibs/animation"
 import "CoreLibs/easing"
 
 local gfx = playdate.graphics
+local snd = playdate.sound
+local synth = snd.synth.new(snd.kWaveSquare)
+synth:setADSR(0,0.02,0,0)
 
 local accumulatedNumber = 0
 local crankSpeed = 1
@@ -244,13 +247,13 @@ function playdate.update()
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
-    if playdate.buttonIsPressed("B") then -- reduce
+    if playdate.buttonIsPressed(playdate.kButtonDown) then -- reduce
         if accumulationChange > 0 then
             accumulationChange = (accumulationChange - 0.05) * 0.95
         else
             accumulationChange = (accumulationChange - 0.05) * 1.05
         end
-    elseif playdate.buttonIsPressed("A") then -- increase
+    elseif playdate.buttonIsPressed(playdate.kButtonUp) then -- increase
         if accumulationChange > 0 then
             accumulationChange = (accumulationChange + 0.05) * 1.05
         else

@@ -5,11 +5,6 @@ import "CoreLibs/math"
 import "CoreLibs/animation"
 import "CoreLibs/easing"
 
-local gfx = playdate.graphics
-local snd = playdate.sound
-local overflowSynth = snd.synth.new(snd.kWaveSine)
-overflowSynth:setADSR(0.9,0.0,0.1,0.1)
-
 local accumulatedNumber = 0
 local crankSpeed = 1
 local baseSelection = 2
@@ -17,6 +12,8 @@ local base = {10,2}
 local accumulationChange = 0
 local maximumAccumulation = 20000000
 local analogueModeEnabled = false
+
+local gfx = playdate.graphics
 
 -- Digit stuff
 local lastDigitStart = {x = 352, y = 115}
@@ -28,7 +25,9 @@ local digitEaseFunction = playdate.easingFunctions.outBounce
 -- sound stuff
 local smplayer = playdate.sound.sampleplayer
 local clicks = {high={}, low={}}
-local baseWaveform = {playdate.sound.kWaveSine, playdate.sound.kWaveSquare}
+local snd = playdate.sound
+local overflowSynth = snd.synth.new(snd.kWaveSine)
+overflowSynth:setADSR(0.9,0.0,0.1,0.1)
 
 local menu = playdate.getSystemMenu()
 

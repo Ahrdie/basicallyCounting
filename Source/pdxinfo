@@ -1,7 +1,7 @@
-name=Template
-author=You, Inc.
-description=A basic game template.
-bundleID=com.yourcompany.TemplateGame
-version=1.0
+name=Count your Base
+author=Robert Deppe
+description=Learn counting with bases
+bundleID=com.robertdeppe.countYourBases
+version=0.1
 buildNumber=100
-imagePath=SystemAssets
+imagePath=images

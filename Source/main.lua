@@ -31,7 +31,7 @@ overflowSynth:setADSR(0.9,0.0,0.1,0.1)
 
 local menu = playdate.getSystemMenu()
 
-local checkmarkMenuItem, error = menu:addCheckmarkMenuItem("analogue", false, function(value)
+local checkmarkMenuItem, error = menu:addCheckmarkMenuItem("analogue", analogueModeEnabled, function(value)
     analogueModeEnabled = value
 end)
 
@@ -307,17 +307,22 @@ end
 
 
 function playdate.gameWillTerminate()
-
+    saveState()
 end
 
 function playdate.deviceWillSleep()
-
+    saveState()
 end
 
 function saveState()
-
+    playdate.datastore.write({accumulatedNumber, baseSelection, analogueModeEnabled}, "countYourBase")
 end
 
 function playdate.gameWillResume()
-
+    local config = playdate.datastore.read("countYourBase")
+    if config ~= nil then
+        accumulatedNumber = config.accumulatedNumber
+        baseSelection = config.baseSelection
+        analogueModeEnabled = config.analogueModeEnabled
+    end
 end

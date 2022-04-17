@@ -11,6 +11,7 @@ local baseSelection = 2
 local base = {10,2}
 local accumulationChange = 0
 local maximumAccumulation = 20000000
+local maximumPowerDigit = 5
 local analogueModeEnabled = false
 
 local gfx = playdate.graphics
@@ -114,7 +115,7 @@ local function createDigits()
     local image = playdate.graphics.image.new('images/digit10')
     local width, h = image:getSize()
     
-    for power = 0, 7, 1
+    for power = 0, maximumPowerDigit, 1
     do
         local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
        createDigit(xPos, lastDigitStart.y, power)
@@ -126,10 +127,7 @@ local function createBaseSign(x,y, baseNumber)
     local animator = gfx.animator.new(800, 1, 1)
     local selected = false
     local extension = 0
-    
-    local middleStart = 0.5
-    local extendedMiddle = 0.9
-       
+
     local sign = gfx.sprite.new()
     sign:setZIndex(1100)
     sign:setImage(signtable:getImage(1))
@@ -196,7 +194,7 @@ local function createOverflow(x,y)
        end
 
        if selected then
-            local noteVariation = math.sin(playdate.getCurrentTimeMilliseconds()/100)
+            local noteVariation = math.sin(playdate.getCurrentTimeMilliseconds()/65)
             local note = 361.63 + noteVariation * 100
             overflowSynth:playNote(note, 0.07 * extension, 0.1)
        end
@@ -205,7 +203,7 @@ local function createOverflow(x,y)
    end
    
    function light:checkOverflow()
-      local largerThanDigits = accumulatedNumber >= base[baseSelection] ^ 8
+      local largerThanDigits = accumulatedNumber >= base[baseSelection] ^ (maximumPowerDigit +1)
       if largerThanDigits then
          selected = true
       else
@@ -238,7 +236,7 @@ end
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
 createBaseSigns()
-createOverflow(32, 130)
+createOverflow(122, 130)
 createForeground()
 loadClickSamples()
 
@@ -277,6 +275,13 @@ function playdate.update()
     playValueChangedSound()
     gfx.sprite.update()
     playdate.drawFPS(0,0)
+    
+end
+
+function displayCrankIndicator()
+    if shown then
+        playdate.ui.crankIndicator:update()
+    end
 end
 
 function playValueChangedSound()
@@ -299,9 +304,8 @@ end
 
 function playdate.cranked(change)
     local newAccumulation = accumulatedNumber + change/360 * crankSpeed
+   
     accumulatedNumber = math.max(0,math.min(maximumAccumulation or 1, newAccumulation))
-    -- gfx.drawText("*" .. change .. "*", 4, 4)
-    -- gfx.drawText("*" .. accumulatedNumber .. "*", 4, 20)
     
 end
 

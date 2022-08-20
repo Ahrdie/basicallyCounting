@@ -168,6 +168,31 @@ local function createBaseSigns()
     end
 end
 
+local function createBaseSelector(x,y, baseNumber)
+   
+   function getAngleTarget()
+      local baseFraction = baseSelection -1 / #base
+      return 360 * baseFraction
+   end
+   
+   local image = playdate.graphics.image.new('images/base-disk')
+   
+   -- The sign has to fit the list of selectable bases
+   local baseSelector = gfx.sprite.new()
+   local angle = getAngleTarget()
+   
+   function baseSelector:update()
+     baseSelector:setImage(image:rotatedImage(angle + playdate.getCurrentTimeMilliseconds()/10))
+   end
+   
+   baseSelector:setCenter(0.5, 0.5)
+   baseSelector:setZIndex(1100)
+   baseSelector:setImage(image)
+   baseSelector:moveTo(x, y)
+   baseSelector:add()
+
+end
+
 local function createOverflow(x,y)
    local lightFrames = gfx.imagetable.new('images/rotatingLight')
    local animation = gfx.animation.loop.new(50, lightFrames, true)
@@ -235,9 +260,10 @@ end
 
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
-createBaseSigns()
+-- createBaseSigns()
+createBaseSelector(360,119)
 createOverflow(122, 130)
-createForeground()
+-- createForeground()
 loadClickSamples()
 
 function playdate.update()

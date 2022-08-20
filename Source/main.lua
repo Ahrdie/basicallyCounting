@@ -170,8 +170,12 @@ end
 
 local function createBaseSelector(x,y, baseNumber)
    
+   local lastBaseSelection = baseSelection
+   
    function getAngleTarget()
-      local baseFraction = baseSelection -1 / #base
+      local baseTableSize = 0
+      for _ in pairs(base) do baseTableSize = baseTableSize + 1 end
+      local baseFraction = ( baseSelection -1 ) / baseTableSize
       return 360 * baseFraction
    end
    
@@ -180,9 +184,22 @@ local function createBaseSelector(x,y, baseNumber)
    -- The sign has to fit the list of selectable bases
    local baseSelector = gfx.sprite.new()
    local angle = getAngleTarget()
+   local animator = gfx.animator.new(800, angle, angle, playdate.easingFunctions.easeInOutCirc)
+   
+   function baseSelectionHasChanged()
+      if baseSelection ~= lastBaseSelection then
+         lastBaseSelection = baseSelection
+         return true
+      end
+      lastBaseSelection = baseSelection
+      return false
+   end
    
    function baseSelector:update()
-     baseSelector:setImage(image:rotatedImage(angle + playdate.getCurrentTimeMilliseconds()/10))
+      if baseSelectionHasChanged() then
+         animator = gfx.animator.new(500, animator:currentValue(), getAngleTarget(), playdate.easingFunctions.inOutCubic)
+      end
+      baseSelector:setImage(image:rotatedImage(animator:currentValue()))
    end
    
    baseSelector:setCenter(0.5, 0.5)

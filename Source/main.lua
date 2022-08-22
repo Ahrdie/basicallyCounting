@@ -122,52 +122,6 @@ local function createDigits()
     end
 end
 
-local function createBaseSign(x,y, baseNumber)
-    local signtable = gfx.imagetable.new('images/base' .. baseNumber .. '-sign')
-    local animator = gfx.animator.new(800, 1, 1)
-    local selected = false
-    local extension = 0
-
-    local sign = gfx.sprite.new()
-    sign:setZIndex(1100)
-    sign:setImage(signtable:getImage(1))
-    sign:moveTo(x, y)
-    sign:add()
-    
-    function sign:update()
-       local currentFrame = math.floor(animator:currentValue())
-       sign:setImage(signtable:getImage(currentFrame))
-       sign:checkBase()
-       
-        if selected and extension < 1 then
-            extension += 0.05
-            extension = math.min(extension, 1)
-        elseif (not selected) and extension > 0 then
-            extension -= 0.07
-            extension = math.max(extension, 0)
-        end
-        
-    end
-    
-    function sign:checkBase()
-      if selected ~= (baseNumber == base[baseSelection]) then
-          if not selected then
-             animator = gfx.animator.new(400, animator:currentValue(), signtable:getLength(), playdate.easingFunctions.inCubic)
-          else
-             animator = gfx.animator.new(500, animator:currentValue(), 1, playdate.easingFunctions.inCubic)
-          end
-          
-          selected = not selected
-      end
-    end
-end
-
-local function createBaseSigns()
-    for i, power in ipairs(base) do
-        createBaseSign(350 - i * 35, 94, power)
-    end
-end
-
 local function createBaseSelector(x,y, baseNumber)
    
    local lastBaseSelection = baseSelection
@@ -200,6 +154,7 @@ local function createBaseSelector(x,y, baseNumber)
          animator = gfx.animator.new(500, animator:currentValue(), getAngleTarget(), playdate.easingFunctions.inOutCubic)
       end
       baseSelector:setImage(image:rotatedImage(animator:currentValue()))
+      baseSelector:setClipRect(337, 96, 46, 13)
    end
    
    baseSelector:setCenter(0.5, 0.5)
@@ -277,10 +232,9 @@ end
 
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 createDigits()
--- createBaseSigns()
 createBaseSelector(360,119)
 createOverflow(122, 130)
--- createForeground()
+createForeground()
 loadClickSamples()
 
 function playdate.update()

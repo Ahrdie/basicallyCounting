@@ -100,26 +100,34 @@ local function createDigit(x,y, power)
       return (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
    end
    
+   function digit:moveDigitToY(y)
+      digit:moveTo(digit.x, y)
+      digit:setClipRect(digit.x - digit.width/2, y, digit.width, digitHeight)
+   end
+   
    digit:setNewBase()
    digit:moveTo(x, y)
+   digit:moveDigitToY(y)
    digit:add()
     
    shadowBehind:moveTo(x, y + baseNumber * digitHeight)
    shadowBehind:add()
    digit:setNewBase()
     
-   return digit
+   return {digit, shadowBehind}
 end
 
 local function createDigits()
     local image = playdate.graphics.image.new('images/digit10')
     local width, h = image:getSize()
+    local digits = {}
     
     for power = 0, maximumPowerDigit, 1
     do
-        local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
-       createDigit(xPos, lastDigitStart.y, power)
+       local xPos = lastDigitStart.x - power * width - power * digitGap + width / 2
+       table.insert(digits, createDigit(xPos, lastDigitStart.y, power))
     end
+    return digits
 end
 
 local function createBaseSelector(x,y, baseNumber)
@@ -162,7 +170,7 @@ local function createBaseSelector(x,y, baseNumber)
    baseSelector:setImage(image)
    baseSelector:moveTo(x, y)
    baseSelector:add()
-
+   return baseSelector
 end
 
 local function createOverflow(x,y)
@@ -231,8 +239,8 @@ local function loadClickSamples()
 end
 
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
-createDigits()
-createBaseSelector(360,119)
+local digits = createDigits()
+local baseSelector = createBaseSelector(360,119)
 createOverflow(122, 130)
 createForeground()
 loadClickSamples()

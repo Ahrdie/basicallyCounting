@@ -36,6 +36,20 @@ local checkmarkMenuItem, error = menu:addCheckmarkMenuItem("analogue", analogueM
     analogueModeEnabled = value
 end)
 
+local speedMenuItem, error = menu:addOptionsMenuItem("speed", {"0.5x","1x","2x","4x","8x","16x","32x"},"1x", function(value)
+   local speed = value:gsub("x","")
+   crankSpeed = tonumber(speed)
+end)
+
+function saveState()
+   local state = {}
+   state["accumulatedNumber"] = accumulatedNumber
+   state["baseSelection"] = baseSelection
+   state["analogueModeEnabled"] = analogueModeEnabled
+   state["crankSpeed"] = crankSpeed
+   playdate.datastore.write(state, "countYourBase")
+end
+
 local function createDigit(x,y, power)
    local baseNumber = base[baseSelection]
    local digit = gfx.sprite.new()
@@ -242,6 +256,7 @@ local baseSelector = createBaseSelector(360,119)
 createOverflow(122, 130)
 createForeground()
 loadClickSamples()
+saveState()
 
 function playdate.update()
     if playdate.buttonJustPressed(playdate.kButtonLeft) then
@@ -316,6 +331,9 @@ function playdate.cranked(change)
     
 end
 
+function playdate.gameWillPause()
+    saveState()
+end
 
 function playdate.gameWillTerminate()
     saveState()
@@ -325,15 +343,12 @@ function playdate.deviceWillSleep()
     saveState()
 end
 
-function saveState()
-    playdate.datastore.write({accumulatedNumber, baseSelection, analogueModeEnabled}, "countYourBase")
-end
-
 function playdate.gameWillResume()
     local config = playdate.datastore.read("countYourBase")
     if config ~= nil then
         accumulatedNumber = config.accumulatedNumber
         baseSelection = config.baseSelection
         analogueModeEnabled = config.analogueModeEnabled
+        crankSpeed = config.crankSpeed
     end
 end

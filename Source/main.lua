@@ -60,7 +60,7 @@ local function createDigit(x,y, power)
          if lastFlooredValue ~=  flooredValue then
             -- positive overroll
             if (lastFlooredValue == baseNumber -1) and flooredValue == 0 and (playdate.getCrankChange() > 0) then
-               animator = gfx.animator.new(digitalSnapSpeed, baseNumber -1, baseNumber, digitEaseFunction)
+               animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, baseNumber, digitEaseFunction)
             -- negative overroll
             elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 and (playdate.getCrankChange() < 0) then
                animator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
@@ -69,10 +69,6 @@ local function createDigit(x,y, power)
             end
          end
          newCenter = animator:currentValue()/baseNumber
-         
-         if animator:currentValue() >= baseNumber then
-            newCenter = 0
-         end
          
          lastValue = value
       end
@@ -86,6 +82,7 @@ local function createDigit(x,y, power)
        local image = playdate.graphics.image.new('images/digit' .. baseNumber)
        digit:setImage(image)
        shadowBehind:setImage(image)
+       shadowBehind:moveTo(x, y + baseNumber * digitHeight)
        local value = math.floor(digit:getValue())
        animator = gfx.animator.new(10, value, value)
    end
@@ -103,6 +100,7 @@ local function createDigit(x,y, power)
    function digit:moveDigitToY(y)
       digit:moveTo(digit.x, y)
       digit:setClipRect(digit.x - digit.width/2, y, digit.width, digitHeight)
+      shadowBehind:setClipRect(digit.x - digit.width/2, y, digit.width, digitHeight)
    end
    
    digit:setNewBase()

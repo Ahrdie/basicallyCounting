@@ -59,10 +59,10 @@ local function createDigit(x,y, power)
          
          if lastFlooredValue ~=  flooredValue then
             -- positive overroll
-            if (lastFlooredValue == baseNumber -1) and flooredValue == 0 and (playdate.getCrankChange() > 0) then
+            if (lastFlooredValue == baseNumber -1) and flooredValue == 0 then
                animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, baseNumber, digitEaseFunction)
             -- negative overroll
-            elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 and (playdate.getCrankChange() < 0) then
+            elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 then
                animator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
             else
                animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, flooredValue, digitEaseFunction)
@@ -252,7 +252,11 @@ function playdate.update()
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
-    if playdate.buttonIsPressed(playdate.kButtonDown) then -- reduce
+    if playdate.buttonJustPressed(playdate.kButtonUp) then
+         accumulatedNumber = math.floor(accumulatedNumber +1)
+    elseif playdate.buttonJustPressed(playdate.kButtonUp) then
+         accumulatedNumber = math.floor(accumulatedNumber -1)
+    elseif playdate.buttonIsPressed(playdate.kButtonDown) then -- reduce
         if accumulationChange > 0 then
             accumulationChange = (accumulationChange - 0.05) * 0.95
         else

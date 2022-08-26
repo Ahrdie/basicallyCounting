@@ -7,8 +7,8 @@ import "CoreLibs/easing"
 
 local accumulatedNumber = 0
 local crankSpeed = 1
-local baseSelection = 3
-local base = {16, 2, 10}
+local baseSelection = 2
+local base = {2, 10, 16, 60}
 local accumulationChange = 0
 local maximumAccumulation = 20000000
 local maximumPowerDigit = 5

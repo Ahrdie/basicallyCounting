@@ -18,7 +18,7 @@ local lastSuggestion = 0
 local gfx = playdate.graphics
 
 -- Digit stuff
-local lastDigitStart = {x = 352, y = 115}
+local lastDigitStart = {x = 353, y = 115}
 local digitGap = 5
 local digitHeight = 60
 local digitalSnapSpeed = 700
@@ -55,8 +55,10 @@ local function createDigit(x,y, power)
    local baseNumber = base[baseSelection]
    local digit = gfx.sprite.new()
    digit:setZIndex(800 + power)
-   local animator = gfx.animator.new(digitalSnapSpeed, 0, 0)
+   local countingAnimator = gfx.animator.new(digitalSnapSpeed, 0, 0)
+   local sidewayAnimator = gfx.animator.new(500, -0.5, 0.5, playdate.easingFunctions.outBounce)
    local lastValue = math.floor((accumulatedNumber/(baseNumber ^ power)) % baseNumber)
+   local settingNewBase = false
    
    local shadowBehind = gfx.sprite.new()
    shadowBehind:setZIndex(700 + power)
@@ -75,37 +77,43 @@ local function createDigit(x,y, power)
          if lastFlooredValue ~=  flooredValue then
             -- positive overroll
             if (lastFlooredValue == baseNumber -1) and flooredValue == 0 then
-               animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, baseNumber, digitEaseFunction)
+               countingAnimator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, baseNumber, digitEaseFunction)
             -- negative overroll
             elseif (lastFlooredValue == 0) and flooredValue == baseNumber -1 then
-               animator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
+               countingAnimator = gfx.animator.new(digitalSnapSpeed, baseNumber, baseNumber -1, digitEaseFunction)
             else
-               animator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, flooredValue, digitEaseFunction)
+               countingAnimator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, flooredValue, digitEaseFunction)
             end
          end
-         newCenter = animator:currentValue()/baseNumber
+         newCenter = countingAnimator:currentValue()/baseNumber
          
          lastValue = value
       end
       
-      digit:setCenter(0.5, newCenter)
-      shadowBehind:setCenter(0.5, newCenter)
+      digit:setCenter(sidewayAnimator:currentValue(), newCenter)
+      shadowBehind:setCenter(sidewayAnimator:currentValue(), newCenter)
    end
    
    function digit:setNewBase()
-       baseNumber = base[baseSelection]
+       
        local image = playdate.graphics.image.new('images/digit' .. baseNumber)
        digit:setImage(image)
        shadowBehind:setImage(image)
        shadowBehind:moveTo(x, y + baseNumber * digitHeight)
        local value = math.floor(digit:getValue())
-       animator = gfx.animator.new(10, value, value)
    end
    
    function digit:checkBase()
-       if (baseNumber == base[baseSelection]) == false then
-           digit:setNewBase()
-       end
+      if (baseNumber == base[baseSelection]) == false then
+         baseNumber = base[baseSelection]
+         settingNewBase = true
+         sidewayAnimator = gfx.animator.new(700 * (sidewayAnimator:currentValue()+0.5), sidewayAnimator:currentValue(), -0.5, playdate.easingFunctions.inQuint)
+      end
+      if (sidewayAnimator:ended() and settingNewBase) then
+        digit:setNewBase()
+        sidewayAnimator = gfx.animator.new(500, -0.5, 0.5,playdate.easingFunctions.inQuint)
+        settingNewBase = false
+      end
    end
    
    function digit:getValue()
@@ -231,17 +239,23 @@ local function createOverflow(x,y)
 end
 
 local function createForeground()
-    local foregroundMask = gfx.sprite.new()
-    foregroundMask:setZIndex(1000)
-    foregroundMask:setImage(playdate.graphics.image.new('images/digitMask'))
-    foregroundMask:moveTo(200, 120)
-    foregroundMask:add()
-    
-    local foreground = gfx.sprite.new()
-    foreground:setZIndex(2000)
-    foreground:setImage(playdate.graphics.image.new('images/counter'))
-    foreground:moveTo(200, 120)
-    foreground:add()
+   local inside = gfx.sprite.new()
+   inside:setZIndex(600)
+   inside:setImage(playdate.graphics.image.new('images/counter-inner'))
+   inside:moveTo(200, 120)
+   inside:add()
+   
+   local foregroundMask = gfx.sprite.new()
+   foregroundMask:setZIndex(1000)
+   foregroundMask:setImage(playdate.graphics.image.new('images/digitMask'))
+   foregroundMask:moveTo(200, 120)
+   foregroundMask:add()
+   
+   local foreground = gfx.sprite.new()
+   foreground:setZIndex(2000)
+   foreground:setImage(playdate.graphics.image.new('images/counter'))
+   foreground:moveTo(200, 120)
+   foreground:add()
 end
 
 local function loadClickSamples()

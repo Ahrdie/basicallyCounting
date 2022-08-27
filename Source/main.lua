@@ -13,6 +13,7 @@ local accumulationChange = 0
 local maximumAccumulation = 20000000
 local maximumPowerDigit = 5
 local analogueModeEnabled = false
+local lastSuggestion = 0
 
 local gfx = playdate.graphics
 
@@ -250,6 +251,49 @@ local function loadClickSamples()
     end
 end
 
+function getIndexInTable(table, value)
+   local index={}
+   for k,v in pairs(table) do
+      index[v]=k
+   end
+   return index[value]
+end
+
+function changeMenuImage()
+   local suggestionsFile, err = playdate.file.open("countSuggestions.json", playdate.file.kFileRead)
+   local suggestions = json.decodeFile(suggestionsFile)
+   
+   local countCardImage = gfx.image.new("images/suggestionCard")
+   gfx.lockFocus(countCardImage)
+   local bgRect = playdate.geometry.rect.new(10, 10, 180, 220)
+   local textRect = playdate.geometry.rect.new(20, 20, 150, 190)
+   local numberRect = playdate.geometry.rect.new(20, 200, 150, 20)
+   gfx.setColor(gfx.kColorWhite)
+   gfx.fillRoundRect(bgRect, 10)
+   gfx.setColor(gfx.kColorBlack)
+   gfx.drawRoundRect(bgRect, 10)
+   
+   local randomLineNumber = math.random(1,#suggestions)
+   if (randomLineNumber == lastSuggestion) then
+      if (randomLineNumber ~= #suggestions) then
+         randomLineNumber = randomLineNumber +1
+      else
+         randomLineNumber = randomLineNumber -1
+      end
+   end
+   lastSuggestion = randomLineNumber
+   
+   local randomLine = suggestions[randomLineNumber]
+   
+   local text = "*You could count…*\n…" .. randomLine
+   local numberLine = "#" .. getIndexInTable(suggestions, randomLine)
+   gfx.drawTextInRect(text, textRect, 0, "...", kTextAlignment.left)
+   gfx.drawTextInRect(numberLine, numberRect, 0, "...", kTextAlignment.center)
+   
+   gfx.unlockFocus()
+   playdate.setMenuImage(countCardImage)
+end
+
 gfx.setBackgroundColor(playdate.graphics.kColorBlack)
 local digits = createDigits()
 local baseSelector = createBaseSelector(360,119)
@@ -257,6 +301,7 @@ createOverflow(122, 130)
 createForeground()
 loadClickSamples()
 saveState()
+changeMenuImage()
 
 function playdate.update()
     if playdate.buttonJustPressed(playdate.kButtonLeft) then
@@ -351,4 +396,5 @@ function playdate.gameWillResume()
         analogueModeEnabled = config.analogueModeEnabled
         crankSpeed = config.crankSpeed
     end
+    changeMenuImage()
 end

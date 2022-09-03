@@ -1,7 +1,5 @@
-name=Count your Base
+name=This is (basically) counting
 author=Robert Deppe
 description=Learn counting with bases
-bundleID=com.robertdeppe.countYourBases
+bundleID=com.robertdeppe.basicallyCounting
 version=0.1
-buildNumber=100
-imagePath=images

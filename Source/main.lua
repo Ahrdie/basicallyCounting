@@ -101,6 +101,7 @@ local function createDigit(x,y, power)
        shadowBehind:setImage(image)
        shadowBehind:moveTo(x, y + baseNumber * digitHeight)
        local value = math.floor(digit:getValue())
+       countingAnimator = gfx.animator.new(10, value, value)
    end
    
    function digit:checkBase()

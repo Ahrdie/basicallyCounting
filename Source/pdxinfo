@@ -3,3 +3,4 @@ author=Robert Deppe
 description=Learn counting with bases
 bundleID=com.robertdeppe.basicallyCounting
 version=0.1
+imagePath=system/

@@ -328,8 +328,10 @@ function playdate.update()
     end
     if playdate.buttonJustPressed(playdate.kButtonUp) then
          accumulatedNumber = math.floor(accumulatedNumber +1)
-    elseif playdate.buttonJustPressed(playdate.kButtonUp) then
+         playValueChangedUpSound()
+    elseif playdate.buttonJustPressed(playdate.kButtonDown) then
          accumulatedNumber = math.floor(accumulatedNumber -1)
+         playValueChangedDownSound()
     elseif playdate.buttonIsPressed(playdate.kButtonDown) then -- reduce
         if accumulationChange > 0 then
             accumulationChange = (accumulationChange - 0.05) * 0.95
@@ -352,11 +354,15 @@ function playdate.update()
         end
     end
 
+   if accumulationChange > 0.4 then
+      playValueChangedUpSound()
+   elseif accumulationChange < -0.3 and accumulatedNumber > 0 then
+      playValueChangedDownSound()
+   end
+   
     changeAccumulation()
     playValueChangedSound()
     gfx.sprite.update()
-    playdate.drawFPS(0,0)
-    
 end
 
 function displayCrankIndicator()
@@ -371,12 +377,20 @@ function playValueChangedSound()
    local lastFlooredNumber = math.max(0,math.floor(accumulatedNumber - crankChange))
 
    if currentFlooredNumber > lastFlooredNumber then
-    local randomSample = math.random(1,3)
-    clicks["high"][randomSample]:play()
+      playValueChangedUpSound()
    elseif currentFlooredNumber < lastFlooredNumber then
-    local randomSample = math.random(1,3)
-    clicks["low"][randomSample]:play()
+      playValueChangedDownSound()
    end
+end
+
+function playValueChangedUpSound()
+   local randomSample = math.random(1,3)
+   clicks["high"][randomSample]:play()
+end
+
+function playValueChangedDownSound()
+   local randomSample = math.random(1,3)
+   clicks["low"][randomSample]:play()
 end
 
 function changeAccumulation()

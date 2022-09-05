@@ -95,7 +95,7 @@ local function createDigit(x,y, power)
    end
    
    function digit:setNewBase()
-       
+       baseNumber = base[baseSelection]
        local image = playdate.graphics.image.new('images/digit' .. baseNumber)
        digit:setImage(image)
        shadowBehind:setImage(image)
@@ -105,8 +105,7 @@ local function createDigit(x,y, power)
    end
    
    function digit:checkBase()
-      if (baseNumber == base[baseSelection]) == false then
-         baseNumber = base[baseSelection]
+      if not settingNewBase and (baseNumber == base[baseSelection]) == false then
          settingNewBase = true
          sidewayAnimator = gfx.animator.new(700 * (sidewayAnimator:currentValue()+0.5), sidewayAnimator:currentValue(), -0.5, playdate.easingFunctions.inQuint)
       end

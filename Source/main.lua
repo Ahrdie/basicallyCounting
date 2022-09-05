@@ -57,12 +57,17 @@ local function createDigit(x,y, power)
    digit:setZIndex(800 + power)
    local countingAnimator = gfx.animator.new(digitalSnapSpeed, 0, 0)
    local sidewayAnimator = gfx.animator.new(500, -0.5, 0.5, playdate.easingFunctions.outBounce)
-   local lastValue = math.floor((accumulatedNumber/(baseNumber ^ power)) % baseNumber)
    local settingNewBase = false
    
    local shadowBehind = gfx.sprite.new()
    shadowBehind:setZIndex(700 + power)
-    
+   
+   function digit:getValue()
+      return (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
+   end
+   
+   local lastValue = math.floor(digit:getValue())
+   
    function digit:update()
       digit:checkBase()
       
@@ -70,11 +75,10 @@ local function createDigit(x,y, power)
       local newCenter = value / baseNumber
       
       if not analogueModeEnabled then
-         value = (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
          local flooredValue = math.floor(value)
          local lastFlooredValue = math.floor(lastValue)
          
-         if lastFlooredValue ~=  flooredValue then
+         if lastFlooredValue ~= flooredValue then
             -- positive overroll
             if (lastFlooredValue == baseNumber -1) and flooredValue == 0 then
                countingAnimator = gfx.animator.new(digitalSnapSpeed, lastFlooredValue, baseNumber, digitEaseFunction)
@@ -102,6 +106,7 @@ local function createDigit(x,y, power)
        shadowBehind:moveTo(x, y + baseNumber * digitHeight)
        local value = math.floor(digit:getValue())
        countingAnimator = gfx.animator.new(10, value, value)
+       lastValue = value
    end
    
    function digit:checkBase()
@@ -114,10 +119,6 @@ local function createDigit(x,y, power)
         sidewayAnimator = gfx.animator.new(500, -0.5, 0.5,playdate.easingFunctions.inQuint)
         settingNewBase = false
       end
-   end
-   
-   function digit:getValue()
-      return (accumulatedNumber/(baseNumber ^ power)) % (baseNumber)
    end
    
    function digit:moveDigitToY(y)

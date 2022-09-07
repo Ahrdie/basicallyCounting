@@ -9,7 +9,7 @@ local accumulatedNumber = 0
 local crankSpeed = 1
 local baseSelection = 2
 local base = {2, 10, 16, 60}
-local accumulationChange = 0
+local accumulationChangeAnimator = nil
 local maximumAccumulation = 20000000
 local maximumPowerDigit = 5
 local analogueModeEnabled = false
@@ -323,47 +323,45 @@ function playdate.update()
         local newBase = baseSelection += 1
         baseSelection = math.min(newBase, #base)
     end
+    
     if playdate.buttonJustPressed(playdate.kButtonRight) then
         local newBase = baseSelection -= 1
         baseSelection = math.max(newBase, 1)
     end
+    
     if playdate.buttonJustPressed(playdate.kButtonUp) then
          accumulatedNumber = math.floor(accumulatedNumber +1)
+         createAccumulationChange(true)
          playValueChangedUpSound()
+         
     elseif playdate.buttonJustPressed(playdate.kButtonDown) then
          accumulatedNumber = math.floor(accumulatedNumber -1)
+         createAccumulationChange(false)
+         print(accumulationChangeAnimator:currentValue())
          playValueChangedDownSound()
-    elseif playdate.buttonIsPressed(playdate.kButtonDown) then -- reduce
-        if accumulationChange > 0 then
-            accumulationChange = (accumulationChange - 0.05) * 0.95
-        else
-            accumulationChange = (accumulationChange - 0.05) * 1.05
-        end
-    elseif playdate.buttonIsPressed(playdate.kButtonUp) then -- increase
-        if accumulationChange > 0 then
-            accumulationChange = (accumulationChange + 0.05) * 1.05
-        else
-            accumulationChange = (accumulationChange + 0.05) * 0.95
-        end
-    else
-        if (accumulationChange > 0.1) then
-            accumulationChange = math.min(0, ((accumulationChange -0.1) * 0.8))
-        elseif (accumulationChange < - 0.1) then
-            accumulationChange = math.max(0, ((accumulationChange +0.1) * 0.8))
-        else
-            accumulationChange = 0
-        end
+        
+    elseif playdate.buttonJustReleased(playdate.kButtonUp) or playdate.buttonJustReleased(playdate.kButtonDown) then
+        accumulationChangeAnimator = nil
     end
+   
+   changeAccumulation()
+   playValueChangedSound()
+   gfx.sprite.update()
+end
 
-   if accumulationChange > 0.4 then
-      playValueChangedUpSound()
-   elseif accumulationChange < -0.3 and accumulatedNumber > 0 then
-      playValueChangedDownSound()
+function createAccumulationChange(increasing)
+   local duration = 600000
+   local startValue = 0
+   local endValue = 1000
+   local startTimeOffset = 0
+   
+   if increasing == false then
+      startValue = -startValue
+      endValue = -endValue
+      startTimeOffset = startTimeOffset +800
    end
    
-    changeAccumulation()
-    playValueChangedSound()
-    gfx.sprite.update()
+   accumulationChangeAnimator = gfx.animator.new(duration, startValue, endValue, playdate.easingFunctions.inSine, startTimeOffset)
 end
 
 function displayCrankIndicator()
@@ -395,7 +393,15 @@ function playValueChangedDownSound()
 end
 
 function changeAccumulation()
-    accumulatedNumber = math.min(math.max(0, accumulatedNumber += accumulationChange), maximumAccumulation)
+   if accumulationChangeAnimator ~= nil then
+      local accumulationChange = accumulationChangeAnimator:currentValue()
+      if playdate.buttonIsPressed(playdate.kButtonA) then
+         accumulationChange *= 2
+      elseif playdate.buttonIsPressed(playdate.kButtonB) then
+         accumulationChange /= 2
+      end
+      accumulatedNumber = math.min(math.max(0, accumulatedNumber += accumulationChange), maximumAccumulation)
+   end
 end
 
 function playdate.cranked(change)

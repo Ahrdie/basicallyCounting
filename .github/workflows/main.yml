@@ -4,7 +4,7 @@ on:
   push:
     # Runs whenever a git tag in SemVer pattern is pushed
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 env:
   BUILD_OUTPUT: basically-counting
@@ -23,7 +23,7 @@ jobs:
       - name: Build Project
         run: |
           # Compiles the project
-          pdc source ${{ env.BUILD_OUTPUT }}.pdx
+          pdc Source ${{ env.BUILD_OUTPUT }}.pdx
 
           # Creates an archive, since the build output is a directory
           zip -r -9 ${{ env.BUILD_OUTPUT }}-${{ github.ref_name }}.zip ${{ env.BUILD_OUTPUT }}.pdx
